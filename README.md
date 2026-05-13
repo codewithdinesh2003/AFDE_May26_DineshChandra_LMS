@@ -135,9 +135,23 @@ library-management-system/
 
 ## Screenshots
 
-> _Add screenshots here after running the application_
+-Dashboard 
+<img width="1919" height="894" alt="image" src="https://github.com/user-attachments/assets/3c843409-c3b0-4bd3-a344-db7f743939e8" />
 
----
+-books page 
+<img width="1919" height="887" alt="image" src="https://github.com/user-attachments/assets/e02890b2-cbb5-455e-a323-e969bd28e4d3" />
+
+- borrowers page
+  <img width="1919" height="895" alt="image" src="https://github.com/user-attachments/assets/7adab9e3-1964-4755-9594-1a3a7290d7bd" />
+
+-transactions page
+  <img width="1919" height="885" alt="image" src="https://github.com/user-attachments/assets/f9a6248d-8755-4502-9085-f3a6697f86f7" />
+
+-search and filter page
+  <img width="1919" height="894" alt="image" src="https://github.com/user-attachments/assets/96c6122f-9d97-458f-a091-15e514d7db82" />
+
+
+
 
 ## Evaluation Criteria
 

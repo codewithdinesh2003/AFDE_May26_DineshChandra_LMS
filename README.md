@@ -273,3 +273,12 @@ library-management-system/
 | Analytics dashboard             | 4-section page: summary, trends, popular books, overdue table         |
 | Charts                          | AreaChart (trends), HorizontalBarChart (books), PieChart (categories) |
 | Overdue detection               | Transactions with status=borrowed older than 14 days flagged as overdue|
+
+
+### Screenshots
+
+Analytics dashboard 
+<img width="1919" height="889" alt="image" src="https://github.com/user-attachments/assets/c2ee7a61-17a1-41c0-988d-070e5116fc9d" />
+
+<img width="1919" height="884" alt="image" src="https://github.com/user-attachments/assets/500ccedb-0717-4a98-bac1-b96860f844d4" />
+

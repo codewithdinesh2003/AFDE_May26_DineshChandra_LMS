@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Enum, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -42,3 +42,43 @@ class Transaction(Base):
 
     book = relationship("Book", back_populates="transactions")
     borrower = relationship("Borrower", back_populates="transactions")
+
+
+class BookAnalytics(Base):
+    __tablename__ = "book_analytics"
+
+    analytics_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    book_id = Column(Integer, ForeignKey("books.book_id"), nullable=False)
+    total_borrows = Column(Integer, default=0)
+    total_returns = Column(Integer, default=0)
+    avg_borrow_days = Column(Float, default=0)
+    last_borrowed = Column(DateTime, nullable=True)
+
+    book = relationship("Book")
+
+
+class MonthlyTrend(Base):
+    __tablename__ = "monthly_trends"
+
+    trend_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    year = Column(Integer, nullable=False)
+    month = Column(Integer, nullable=False)
+    total_borrows = Column(Integer, default=0)
+    total_returns = Column(Integer, default=0)
+    unique_borrowers = Column(Integer, default=0)
+    unique_books = Column(Integer, default=0)
+
+
+class OverdueAnalytics(Base):
+    __tablename__ = "overdue_analytics"
+
+    overdue_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    transaction_id = Column(Integer, ForeignKey("transactions.transaction_id"), nullable=False)
+    book_id = Column(Integer, ForeignKey("books.book_id"), nullable=False)
+    borrower_id = Column(Integer, ForeignKey("borrowers.borrower_id"), nullable=False)
+    borrow_date = Column(DateTime, nullable=False)
+    days_overdue = Column(Integer, default=0)
+    status = Column(String(50), default="overdue")
+
+    book = relationship("Book")
+    borrower = relationship("Borrower")

@@ -103,3 +103,64 @@ class DashboardStats(BaseModel):
     borrowed_books: int
     total_borrowers: int
     total_transactions: int
+
+
+# ── Analytics schemas ─────────────────────────────────────────────────────────
+
+class PopularBookResponse(BaseModel):
+    book_id: int
+    title: str
+    author: str
+    category: str
+    total_borrows: int
+    total_returns: int
+    avg_borrow_days: float
+    last_borrowed: Optional[datetime]
+
+    model_config = {"from_attributes": True}
+
+
+class CategoryWiseResponse(BaseModel):
+    category: str
+    total_borrows: int
+    book_count: int
+
+    model_config = {"from_attributes": True}
+
+
+class MonthlyTrendResponse(BaseModel):
+    year: int
+    month: int
+    month_label: str
+    total_borrows: int
+    total_returns: int
+    unique_borrowers: int
+    unique_books: int
+
+    model_config = {"from_attributes": True}
+
+
+class OverdueResponse(BaseModel):
+    overdue_id: int
+    transaction_id: int
+    book_title: str
+    borrower_name: str
+    borrower_email: str
+    borrow_date: datetime
+    days_overdue: int
+    status: str
+
+    model_config = {"from_attributes": True}
+
+
+class AnalyticsSummaryResponse(BaseModel):
+    total_books: int
+    available_books: int
+    borrowed_books: int
+    total_borrowers: int
+    total_transactions: int
+    overdue_count: int
+    most_popular_book: Optional[str]
+    top_category: Optional[str]
+
+    model_config = {"from_attributes": True}

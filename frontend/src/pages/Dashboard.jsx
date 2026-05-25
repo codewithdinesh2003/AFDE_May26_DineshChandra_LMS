@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { BookOpen, CheckCircle, Clock, Users } from 'lucide-react'
+import { BookOpen, CheckCircle, Clock, Users, AlertTriangle } from 'lucide-react'
 import StatCard from '../components/UI/StatCard'
 import Badge from '../components/UI/Badge'
 import transactionService from '../services/transactionService'
+import { getSummary } from '../services/analyticsService'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -28,11 +29,11 @@ export default function Dashboard() {
   useEffect(() => {
     async function load() {
       try {
-        const [statsRes, txRes] = await Promise.all([
-          transactionService.getStats(),
+        const [summaryRes, txRes] = await Promise.all([
+          getSummary(),
           transactionService.getAll(),
         ])
-        setStats(statsRes.data)
+        setStats(summaryRes.data)
         setTransactions(txRes.data.slice(-5).reverse())
       } catch {
         setError('Failed to load dashboard data. Is the backend running?')
@@ -64,11 +65,12 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
         <StatCard title="Total Books" value={stats?.total_books} icon={BookOpen} color="indigo" subtitle="In the library" />
         <StatCard title="Available" value={stats?.available_books} icon={CheckCircle} color="emerald" subtitle="Ready to borrow" />
         <StatCard title="Borrowed" value={stats?.borrowed_books} icon={Clock} color="amber" subtitle="Currently out" />
         <StatCard title="Borrowers" value={stats?.total_borrowers} icon={Users} color="violet" subtitle="Registered members" />
+        <StatCard title="Overdue" value={stats?.overdue_count} icon={AlertTriangle} color="rose" subtitle="Past due date" />
       </div>
 
       {/* Charts */}

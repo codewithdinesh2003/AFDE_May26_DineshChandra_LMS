@@ -1,6 +1,7 @@
 # LibraryOS — Library Management System
 
-A full-stack Library Management System built as a Phase 1 Capstone Project.
+A full-stack Library Management System with ETL pipeline and analytics dashboard.  
+**Phase 1** covers core CRUD operations. **Phase 2** adds an ETL pipeline, aggregated analytics tables, and a live analytics dashboard.
 
 ---
 
@@ -15,6 +16,7 @@ A full-stack Library Management System built as a Phase 1 Capstone Project.
 | Backend    | FastAPI + SQLAlchemy + Pydantic v2 + Uvicorn         |
 | Database   | MySQL 8+                                             |
 | ORM Driver | PyMySQL                                              |
+| ETL        | pandas + Faker + openpyxl                            |
 
 ---
 
@@ -66,6 +68,75 @@ Frontend runs at `http://localhost:5173`
 
 ---
 
+## Phase 2 — ETL Pipeline & Analytics
+
+### Overview
+
+Phase 2 extends the system with a data pipeline that aggregates raw transaction data into analytics tables, and surfaces the results on a dedicated analytics dashboard.
+
+```
+Raw MySQL tables          ETL Pipeline            Analytics tables
+─────────────────    ──────────────────────    ────────────────────────
+books                │  extract()             │  book_analytics
+borrowers      ───►  │  transform()     ───►  │  monthly_trends
+transactions         │  load()                │  overdue_analytics
+```
+
+### Phase 2 Setup
+
+**Step 1 — Apply analytics schema:**
+```bash
+# Windows PowerShell
+cmd /c "mysql -u root -proot library_db < database/phase2_schema.sql"
+```
+
+**Step 2 — Generate seed dataset (50 books, 40 borrowers, 150+ transactions):**
+```bash
+cd backend
+python -m etl.generate_dataset
+```
+
+**Step 3 — Export dataset to Excel:**
+```bash
+python -m etl.export_dataset
+# Output: dataset/library_dataset.xlsx  (3 sheets: Books, Borrowers, Transactions)
+```
+
+**Step 4 — Run the ETL pipeline:**
+```bash
+python -m etl.etl_pipeline
+```
+
+### ETL Pipeline (`backend/etl/etl_pipeline.py`)
+
+| Stage | What it does |
+|-------|-------------|
+| **Extract** | Loads books, borrowers, and transactions from MySQL using `pd.read_sql()` |
+| **Transform** | Deduplicates, parses dates, calculates borrow duration, flags overdue records (>14 days), aggregates book stats and monthly trends |
+| **Load** | Truncates and reloads `book_analytics`, `monthly_trends`, `overdue_analytics` tables |
+
+### Analytics API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /analytics/summary | Combined stats: books, borrowers, transactions, overdue count, top book & category |
+| GET | /analytics/popular-books | Top 10 most borrowed books with borrow stats |
+| GET | /analytics/category-wise | Borrows grouped by book category |
+| GET | /analytics/monthly-trends | Month-by-month borrow/return counts with unique borrower/book counts |
+| GET | /analytics/overdue | All overdue transactions with borrower and book details |
+
+### Analytics Dashboard (`/analytics`)
+
+Four sections on the analytics page:
+
+- **Summary bar** — 6 stat cards (Total Books, Available, Borrowed, Overdue, Borrowers, Transactions)
+- **Monthly Trends** — Recharts AreaChart showing borrows vs returns over time
+- **Most Borrowed Books** — Horizontal bar chart of top 10 books
+- **Category Distribution** — Pie chart of borrows by category
+- **Overdue Table** — Full list of overdue transactions with days overdue and borrower contact
+
+---
+
 ## API Endpoints
 
 ### Books
@@ -105,29 +176,47 @@ Frontend runs at `http://localhost:5173`
 ```
 library-management-system/
 ├── backend/
-│   ├── main.py           # FastAPI app entry point
-│   ├── database.py       # SQLAlchemy engine + session
-│   ├── models.py         # ORM models
-│   ├── schemas.py        # Pydantic v2 schemas
-│   ├── crud.py           # Business logic / DB queries
+│   ├── main.py               # FastAPI app entry point
+│   ├── database.py           # SQLAlchemy engine + session
+│   ├── models.py             # ORM models (Phase 1 + Phase 2)
+│   ├── schemas.py            # Pydantic v2 schemas (Phase 1 + Phase 2)
+│   ├── crud.py               # Business logic / DB queries
 │   ├── routers/
 │   │   ├── books.py
 │   │   ├── borrowers.py
-│   │   └── transactions.py
+│   │   ├── transactions.py
+│   │   └── analytics.py      # Phase 2 — analytics endpoints
+│   ├── etl/                  # Phase 2 — ETL pipeline
+│   │   ├── generate_dataset.py
+│   │   ├── export_dataset.py
+│   │   └── etl_pipeline.py
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
 │   │   ├── api/axios.js          # Axios instance
-│   │   ├── services/             # API service modules
+│   │   ├── services/
+│   │   │   ├── bookService.js
+│   │   │   ├── borrowerService.js
+│   │   │   ├── transactionService.js
+│   │   │   └── analyticsService.js   # Phase 2
 │   │   ├── components/
 │   │   │   ├── Layout/           # Sidebar, Header, Layout
 │   │   │   └── UI/               # StatCard, Table, Modal, Badge, Button
-│   │   └── pages/                # Dashboard, Books, Borrowers, Transactions, Search
+│   │   └── pages/
+│   │       ├── Dashboard.jsx
+│   │       ├── Books.jsx
+│   │       ├── Borrowers.jsx
+│   │       ├── Transactions.jsx
+│   │       ├── Search.jsx
+│   │       └── Analytics.jsx     # Phase 2
 │   ├── vite.config.js
 │   ├── tailwind.config.js
 │   └── package.json
 ├── database/
-│   └── schema.sql
+│   ├── schema.sql            # Phase 1 schema
+│   └── phase2_schema.sql     # Phase 2 analytics tables
+├── dataset/
+│   └── library_dataset.xlsx  # Generated by export_dataset.py
 └── README.md
 ```
 
@@ -155,6 +244,8 @@ library-management-system/
 
 ## Evaluation Criteria
 
+### Phase 1
+
 | Criteria                        | Implementation                                          |
 |---------------------------------|---------------------------------------------------------|
 | Database design                 | Normalized 3-table schema with FK constraints           |
@@ -167,3 +258,18 @@ library-management-system/
 | Error handling                  | Toast notifications + API error boundaries              |
 | Loading states                  | Skeleton loaders on all data-fetching views             |
 | Search                          | Debounced live search with card-grid results            |
+
+### Phase 2
+
+| Criteria                        | Implementation                                                        |
+|---------------------------------|-----------------------------------------------------------------------|
+| ETL Extract                     | `pd.read_sql()` loads all 3 tables with JOIN for denormalized view    |
+| ETL Transform                   | Dedup, date parsing, duration calc, overdue flagging, aggregations    |
+| ETL Load                        | Truncate + `df.to_sql()` into 3 analytics tables                      |
+| Seed dataset                    | Faker generates 50 books, 40 borrowers, 150+ realistic transactions   |
+| Excel export                    | openpyxl writes 3-sheet workbook to `dataset/library_dataset.xlsx`    |
+| Analytics schema                | 3 new tables: `book_analytics`, `monthly_trends`, `overdue_analytics` |
+| Analytics APIs                  | 5 endpoints under `/analytics` prefix                                 |
+| Analytics dashboard             | 4-section page: summary, trends, popular books, overdue table         |
+| Charts                          | AreaChart (trends), HorizontalBarChart (books), PieChart (categories) |
+| Overdue detection               | Transactions with status=borrowed older than 14 days flagged as overdue|
